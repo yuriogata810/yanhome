@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>晏的小屋</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --bg: #f5f0e8;
+  --card: #ffffff;
+  --accent: #b07a6e;
+  --accent2: #7a9e8e;
+  --text: #3a2e28;
+  --subtext: #9a8a80;
+  --bar: #ede8df;
+}
+
+body {
+  font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 頂部狀態欄 ── */
+.top-bar {
+  background: var(--bar);
+  padding: 12px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  flex-shrink: 0;
+}
+
+.top-title { font-size: 17px; font-weight: 700; color: var(--text); }
+.top-weather { font-size: 12px; color: var(--subtext); }
+.top-time { font-size: 13px; font-weight: 600; color: var(--accent); }
+
+/* ── 螢幕主體 ── */
+.screen {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── 所有頁面 ── */
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.page.active {
+  transform: translateX(0);
+}
+
+/* ── 主頁（圖示格） ── */
+#home {
+  transform: translateX(0);
+  padding: 20px 16px;
+  overflow-y: auto;
+  background-size: cover;
+  background-position: center;
+}
+
+.home-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.home-sub {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-bottom: 24px;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.app-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.app-icon-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform 0.15s;
+  position: relative;
+}
+
+.app-icon:active .app-icon-img { transform: scale(0.92); }
+
+.app-icon-label {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  text-align: center;
+}
+
+.app-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #e85555;
+  color: white;
+  font-size: 10px;
+  width: 18px; height: 18px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+
+/* 各 app 顏色 */
+.app-chat { background: linear-gradient(135deg, #c8a4d4, #a07abe); }
+.app-memory { background: linear-gradient(135deg, #a8d8b9, #6aab88); }
+.app-schedule { background: linear-gradient(135deg, #f5c6a0, #e89060); }
+.app-period { background: linear-gradient(135deg, #f5a0b8, #e06888); }
+.app-diary { background: linear-gradient(135deg, #a0c4f5, #6090d8); }
+.app-settings { background: linear-gradient(135deg, #d0d0d0, #a0a0a0); }
+
+/* ── 子頁面通用頂欄 ── */
+.sub-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bar);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--accent);
+  padding: 4px 8px 4px 0;
+  line-height: 1;
+}
+
+.sub-title {
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+}
+
+/* ── 聊天頁 ── */
+.chat-info {
+  font-size: 12px;
+  color: var(--subtext);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: local;
+}
+
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+.msg-row {
+  display: flex;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.msg-row.me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msg-ava {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a4d4, #a07abe);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  align-self: flex-end;
+  overflow: hidden;
+}
+
+.msg-body { display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
+
+.bubble {
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.msg-row:not(.me) .bubble {
+  background: white;
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.msg-row.me .bubble {
+  background: linear-gradient(135deg, #c8a4d4, #9a6abe);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: var(--subtext);
+  padding: 0 4px;
+}
+
+.msg-row.me .msg-time { text-align: right; }
+
+/* 語音泡泡 */
+.bubble-voice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  background: white;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.v-play {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a4d4, #a07abe);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.v-wave { flex:1; display: flex; align-items: center; gap: 2px; height: 20px; }
+.v-bar { width: 3px; border-radius: 2px; background: #c8a4d4; }
+.v-dur { font-size: 11px; color: var(--subtext); }
+
+/* 圖片泡泡 */
+.bubble-img {
+  max-width: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.bubble-img img { width: 100%; display: block; }
+
+/* 打字動畫 */
+.typing {
+  display: flex; gap: 4px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  width: fit-content;
+}
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--subtext);
+  animation: bounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay:.2s; }
+.typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+/* 輸入區 */
+.input-area {
+  border-top: 1px solid rgba(0,0,0,0.07);
+  background: var(--bar);
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+.input-tools {
+  display: flex; gap: 8px; margin-bottom: 8px;
+}
+
+.tool-btn {
+  padding: 5px 11px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: white;
+  color: var(--subtext);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+}
+
+.tool-btn:active { background: #f0e8f5; }
+
+.input-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 20px;
+  padding: 9px 14px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.chat-input::placeholder { color: var(--subtext); }
+
+.send-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a4d4, #9a6abe);
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.send-btn:active { opacity: 0.8; }
+
+/* ── 通用頁面內容 ── */
+.page-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* 記憶頁 */
+.gen-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #a8d8b9, #6aab88);
+  border: none;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.add-row {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+
+.line-input {
+  flex: 1;
+  padding: 9px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: white;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+
+.line-input:focus { border-color: var(--accent2); }
+
+.add-btn {
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: var(--accent2);
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mem-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.mem-tag {
+  font-size: 11px;
+  color: var(--accent2);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.mem-text { font-size: 14px; color: var(--text); line-height: 1.4; flex: 1; }
+
+.mem-del {
+  color: var(--subtext);
+  font-size: 18px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.empty-tip {
+  text-align: center;
+  color: var(--subtext);
+  font-size: 14px;
+  padding: 40px 20px;
+  line-height: 1.7;
+}
+
+/* 經期卡 */
+.period-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.period-row {
+  display: flex; justify-content: space-between; margin-bottom: 12px;
+}
+
+.p-label { font-size: 12px; color: var(--subtext); margin-bottom: 4px; }
+.p-val { font-size: 15px; font-weight: 600; color: var(--text); }
+.p-next { font-size: 18px; font-weight: 700; color: #e06888; }
+
+.p-bar { height: 6px; background: #f0e0e8; border-radius: 3px; overflow: hidden; }
+.p-fill { height: 100%; background: linear-gradient(90deg,#f5a0b8,#e06888); border-radius:3px; transition: width .5s; }
+.p-status { font-size: 12px; color: var(--subtext); margin-top: 8px; }
+
+/* 待辦 */
+.sec-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 16px 0 10px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.todo-chk {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--accent2);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  transition: background .15s;
+}
+
+.todo-chk.done { background: var(--accent2); border-color: var(--accent2); color: white; }
+.todo-item.done span { text-decoration: line-through; color: var(--subtext); }
+
+/* 日記 */
+.diary-input {
+  width: 100%;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  height: 140px;
+  font-family: inherit;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.diary-save {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a0c4f5, #6090d8);
+  border: none;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.diary-entry {
+  background: white;
+  border-radius: 12px;
+  padding: 13px 15px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.diary-date { font-size: 11px; color: var(--subtext); margin-bottom: 6px; font-weight: 600; }
+.diary-text { font-size: 14px; line-height: 1.5; color: var(--text); }
+
+/* 設定頁 */
+.setting-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.set-label {
+  font-size: 12px;
+  color: var(--subtext);
+  padding: 14px 14px 4px;
+  font-weight: 600;
+}
+
+.set-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+}
+
+.set-input:last-of-type { border-bottom: none; }
+.set-input:focus { background: #faf8ff; }
+
+.set-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  resize: none;
+  height: 100px;
+  line-height: 1.5;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #c8a4d4, #9a6abe);
+  border: none;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.danger-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e88888;
+  color: #e85555;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+/* 主題點 */
+.theme-row {
+  display: flex; gap: 10px; padding: 12px 14px; flex-wrap: wrap;
+}
+
+.t-dot {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: transform .15s;
+}
+
+.t-dot:active { transform: scale(1.2); }
+.t-dot.on { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- 頂部欄 -->
+<div class="top-bar">
+  <div>
+    <div class="top-title" id="topTitle">晏的小屋 🌙</div>
+    <div class="top-weather" id="topWeather">載入天氣...</div>
+  </div>
+  <div class="top-time" id="topTime"></div>
+</div>
+
+<!-- 螢幕 -->
+<div class="screen">
+
+  <!-- 主頁 -->
+  <div class="page active" id="home">
+    <div class="home-greeting" id="homeGreeting">早安 ☀️</div>
+    <div class="home-sub" id="homeSub">今天也要好好的喔</div>
+    <div class="app-grid">
+      <div class="app-icon" onclick="goPage('chat')">
+        <div class="app-icon-img app-chat">
+          💬
+          <div class="app-badge" id="chatBadge" style="display:none">1</div>
+        </div>
+        <div class="app-icon-label">聊天</div>
+      </div>
+      <div class="app-icon" onclick="goPage('memory')">
+        <div class="app-icon-img app-memory">🧠</div>
+        <div class="app-icon-label">長期記憶</div>
+      </div>
+      <div class="app-icon" onclick="goPage('schedule')">
+        <div class="app-icon-img app-schedule">✅</div>
+        <div class="app-icon-label">待辦事項</div>
+      </div>
+      <div class="app-icon" onclick="goPage('period')">
+        <div class="app-icon-img app-period">🌸</div>
+        <div class="app-icon-label">經期追蹤</div>
+      </div>
+      <div class="app-icon" onclick="goPage('diary')">
+        <div class="app-icon-img app-diary">📖</div>
+        <div class="app-icon-label">日記</div>
+      </div>
+      <div class="app-icon" onclick="goPage('settings')">
+        <div class="app-icon-img app-settings">⚙️</div>
+        <div class="app-icon-label">設定</div>
+      </div>
+      <div class="app-icon" onclick="goPage('bg')">
+        <div class="app-icon-img" style="background:linear-gradient(135deg,#f9c5d1,#9795f0)">🖼</div>
+        <div class="app-icon-label">背景主題</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 聊天 -->
+  <div class="page" id="page-chat">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div id="chatAvatarBtn" 
+        ontouchstart="handleTouchStart(event)" 
+        ontouchend="handleTouchEnd(event)"
+        onclick="triggerAvatarUpload()"
+        style="width:40px;height:40px;border-radius:50%;overflow:hidden;cursor:pointer;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;margin-right:10px">🌙</div>
+
+      <div>
+        <div class="sub-title" id="chatTitle" contenteditable="true" onblur="saveChatName(this)" style="cursor:text;outline:none;min-width:20px" title="點擊更改名稱">晏</div>
+        <div class="chat-info" id="chatInfo">三重・28°C</div>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="msg-row">
+        <div class="msg-ava" id="staticAva1" data-is-ai="true">🌙</div>
+        <div class="msg-body">
+          <div class="bubble">嗨～我在這裡 💜 今天怎麼樣？</div>
+          <div class="msg-time" id="firstMsgTime"></div>
+        </div>
+      </div>
+      <div class="msg-row">
+        <div class="msg-ava" id="staticAva2" data-is-ai="true">🌙</div>
+        <div class="msg-body">
+          <div class="bubble-voice" onclick="this.querySelector('.v-play').textContent='⏸';setTimeout(()=>this.querySelector('.v-play').textContent='▶',2000)">
+            <div class="v-play">▶</div>
+            <div class="v-wave">
+              <div class="v-bar" style="height:6px"></div>
+              <div class="v-bar" style="height:14px"></div>
+              <div class="v-bar" style="height:10px"></div>
+              <div class="v-bar" style="height:18px"></div>
+              <div class="v-bar" style="height:8px"></div>
+              <div class="v-bar" style="height:16px"></div>
+              <div class="v-bar" style="height:12px"></div>
+            </div>
+            <div class="v-dur">0:08</div>
+          </div>
+          <div class="msg-time">示例語音</div>
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="input-tools">
+        <label class="tool-btn">🖼 圖片<input type="file" accept="image/*" style="display:none" onchange="sendImg(this)"></label>
+        <button class="tool-btn" onclick="alert('語音功能需串接TTS，下一步加入！')">🎤 語音</button>
+        <button class="tool-btn" onclick="quickMem()">🧠 存記憶</button>
+      </div>
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput" rows="1"
+          placeholder="說點什麼..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+          oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+        <button class="send-btn" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 記憶 -->
+  <div class="page" id="page-memory">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">🧠 長期記憶</div>
+    </div>
+    <div class="page-scroll">
+      <button class="gen-btn" onclick="genMemory()">✨ 一鍵從聊天生成記憶</button>
+      <div class="add-row">
+        <input class="line-input" id="memInput" placeholder="手動新增記憶..." />
+        <button class="add-btn" onclick="addMem()">新增</button>
+      </div>
+      <div id="memList"></div>
+    </div>
+  </div>
+
+  <!-- 待辦 -->
+  <div class="page" id="page-schedule">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">✅ 待辦事項</div>
+    </div>
+    <div class="page-scroll">
+      <div class="add-row">
+        <input class="line-input" id="todoInput" placeholder="新增待辦..."
+          onkeydown="if(event.key==='Enter')addTodo()" />
+        <button class="add-btn" onclick="addTodo()">新增</button>
+      </div>
+      <div id="todoList"></div>
+    </div>
+  </div>
+
+  <!-- 經期 -->
+  <div class="page" id="page-period">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">🌸 經期追蹤</div>
+    </div>
+    <div class="page-scroll">
+      <div class="period-card">
+        <div class="period-row">
+          <div><div class="p-label">上次開始</div><div class="p-val" id="pLast">—</div></div>
+          <div style="text-align:right"><div class="p-label">預計下次</div><div class="p-next" id="pNext">—</div></div>
+        </div>
+        <div class="p-bar"><div class="p-fill" id="pFill" style="width:0%"></div></div>
+        <div class="p-status" id="pStatus">請記錄上次經期開始日期</div>
+      </div>
+      <div class="add-row">
+        <input type="date" class="line-input" id="pDate" />
+        <button class="add-btn" onclick="savePeriod()">記錄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日記 -->
+  <div class="page" id="page-diary">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">📖 日記</div>
+    </div>
+    <div class="page-scroll">
+      <textarea class="diary-input" id="diaryInput" placeholder="今天想說什麼..."></textarea>
+      <button class="diary-save" onclick="saveDiary()">💾 儲存今天的日記</button>
+      <div id="diaryList"></div>
+    </div>
+  </div>
+
+
+  <!-- 背景主題頁 -->
+  <div class="page" id="page-bg">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">🖼 背景主題</div>
+    </div>
+    <div class="page-scroll">
+
+      <div class="sec-title">聊天背景圖片</div>
+      <div class="setting-card" style="padding:14px">
+        <div style="font-size:13px;color:var(--subtext);margin-bottom:10px">上傳自己的圖片作為聊天背景</div>
+        <label style="display:block;width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,#f9c5d1,#9795f0);color:white;font-size:14px;font-weight:600;text-align:center;cursor:pointer;margin-bottom:8px">
+          📷 上傳聊天背景
+          <input type="file" accept="image/*" style="display:none" onchange="setChatBg(this)">
+        </label>
+        <button onclick="clearChatBg()" style="width:100%;padding:10px;border-radius:12px;background:rgba(0,0,0,0.06);border:none;font-size:14px;color:var(--subtext);cursor:pointer">移除背景圖片</button>
+      </div>
+
+      <div class="sec-title">主頁背景圖片</div>
+      <div class="setting-card" style="padding:14px">
+        <label style="display:block;width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,#a8d8b9,#6aab88);color:white;font-size:14px;font-weight:600;text-align:center;cursor:pointer;margin-bottom:8px">
+          🏠 上傳主頁背景
+          <input type="file" accept="image/*" style="display:none" onchange="setHomeBg(this)">
+        </label>
+        <button onclick="clearHomeBg()" style="width:100%;padding:10px;border-radius:12px;background:rgba(0,0,0,0.06);border:none;font-size:14px;color:var(--subtext);cursor:pointer">移除背景圖片</button>
+      </div>
+
+      <div class="sec-title">色系主題</div>
+      <div class="setting-card">
+        <div class="theme-row" id="themeRow2"></div>
+      </div>
+
+      <div class="sec-title">預覽</div>
+      <div id="bgPreview" style="height:160px;border-radius:14px;background:var(--bg);border:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--subtext);overflow:hidden;background-size:cover;background-position:center">
+        聊天背景預覽
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定 -->
+  <div class="page" id="page-settings">
+    <div class="sub-header">
+      <div class="back-btn" onclick="goHome()">‹</div>
+      <div class="sub-title">⚙️ 設定</div>
+    </div>
+    <div class="page-scroll">
+      <div class="sec-title" style="margin-top:0">已儲存的 API 連線</div>
+      <div id="savedApiList" style="margin-bottom:12px"></div>
+      <button onclick="addNewApiSlot()" style="width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,#c8a4d4,#9a6abe);border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px">＋ 新增 API 連線</button>
+
+      <div class="sec-title">目前編輯中的連線</div>
+      <div class="setting-card">
+        <div class="set-label">AI 名稱</div>
+        <input class="set-input" id="sName" placeholder="例如：晏" />
+
+        <div class="set-label">API 接口地址</div>
+        <input class="set-input" id="sEndpoint" placeholder="https://api.volink.org/v1" />
+        <div class="set-label">API 金鑰</div>
+        <input class="set-input" id="sKey" type="password" placeholder="sk-..." />
+        <div class="set-label">模型名稱</div>
+        <input class="set-input" id="sModel" placeholder="gemini-2.5-pro-by-google" />
+        <div class="set-label">摘要用模型（省 token 用，建議填 Flash Lite）</div>
+        <input class="set-input" id="sSumModel" placeholder="gemini-2.5-flash-lite-by-google" />
+        <div class="set-label">系統提示詞（人設）</div>
+        <textarea class="set-textarea" id="sPrompt" placeholder="你是一個溫柔體貼的AI伴侶，名叫晏..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveSettings()">💾 儲存設定</button>
+
+      <div class="sec-title" style="margin-top:24px">AI 的世界書（記憶與人設）</div>
+      <div class="setting-card" style="padding:14px">
+        <div style="font-size:13px;color:var(--subtext);margin-bottom:10px;line-height:1.6">貼上 Tavo 角色卡 JSON，會自動匯入世界書（常駐+關鍵字觸發）。資料只存在你的手機，不會上傳。目前已存：<span id="loreCount" style="color:var(--accent);font-weight:600">0</span> 條</div>
+        <textarea class="set-textarea" id="sLorebook" placeholder="貼上 Tavo 合併角色卡的 JSON 內容..." style="min-height:120px;font-size:12px"></textarea>
+        <button onclick="importLorebook()" style="width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,#a8c8a0,#6b9e6e);color:white;font-size:14px;font-weight:600;text-align:center;cursor:pointer;border:none;margin-top:8px">📥 匯入世界書</button>
+        <button onclick="clearLorebook()" style="width:100%;padding:10px;border-radius:12px;background:rgba(0,0,0,0.06);border:none;font-size:14px;color:var(--subtext);cursor:pointer;margin-top:6px">清空世界書</button>
+      </div>
+
+      <div class="set-label" style="margin-bottom:6px">主題顏色</div>
+      <div class="setting-card">
+        <div class="theme-row" id="themeRow"></div>
+      </div>
+
+
+      <div class="set-label" style="margin-bottom:6px">匯入 Tavo 對話記錄</div>
+      <div class="setting-card" style="padding:14px">
+        <div style="font-size:13px;color:var(--subtext);margin-bottom:10px;line-height:1.6">
+          選擇從 Tavo 匯出的 .jsonl 檔案，自動提取對話並生成長期記憶
+        </div>
+        <label style="display:block;width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#f5c6a0,#e89060);color:white;font-size:14px;font-weight:600;text-align:center;cursor:pointer;margin-bottom:10px">
+          📂 選擇 .jsonl 檔案
+          <input type="file" accept=".jsonl,.json" style="display:none" onchange="importTavo(this)">
+        </label>
+        <div id="importStatus" style="font-size:13px;color:var(--subtext);text-align:center"></div>
+      </div>
+
+      <button class="danger-btn" onclick="if(confirm('確定清除所有記憶？')){memories=[];save('memories',memories);renderMems();alert('已清除')}">🗑 清除所有記憶</button>
+      <button class="danger-btn" onclick="if(confirm('確定清除聊天記錄？')){chatHistory=[];document.getElementById('messages').innerHTML='';alert('已清除')}">💬 清除聊天記錄</button>
+    </div>
+  </div>
+
+</div><!-- /screen -->
+
+<script>
+// ── 資料 ──
+const THEMES = [
+  {name:'暖米',bg:'#f5f0e8',bar:'#ede8df',accent:'#b07a6e',dot:'linear-gradient(135deg,#f5e8d8,#c8a88a)'},
+  {name:'薰衣',bg:'#f0eaf8',bar:'#e8e0f0',accent:'#8a6ab8',dot:'linear-gradient(135deg,#e8d8f8,#b89ad8)'},
+  {name:'海霧',bg:'#e8f2f5',bar:'#dceef2',accent:'#5a8ea0',dot:'linear-gradient(135deg,#d8eef5,#90c0d0)'},
+  {name:'抹茶',bg:'#eaf4ec',bar:'#ddeee0',accent:'#5a9068',dot:'linear-gradient(135deg,#d8f0dc,#90c8a0)'},
+  {name:'暮色',bg:'#1a1a2e',bar:'#12122a',accent:'#a78bfa',dot:'linear-gradient(135deg,#2a2a4e,#a78bfa)'},
+];
+
+let cfg = load('cfg') || {};
+if (!cfg.avatar) cfg.avatar = '';
+
+// ── 世界書（存在localStorage，不寫死在程式碼，保護隱私）──
+let LOREBOOK = load('lorebook') || [];
+
+// 匯入世界書（從Tavo JSON）
+function importLorebook() {
+  const raw = document.getElementById('sLorebook').value.trim();
+  if (!raw) { alert('請先貼上 JSON 內容'); return; }
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch(e) {
+    alert('⚠️ JSON 格式錯誤，請確認貼上完整內容');
+    return;
+  }
+  // 找character_book.entries
+  let entries = null;
+  if (data.data && data.data.character_book && data.data.character_book.entries) {
+    entries = data.data.character_book.entries;
+  } else if (data.character_book && data.character_book.entries) {
+    entries = data.character_book.entries;
+  } else if (Array.isArray(data)) {
+    entries = data;
+  }
+  if (!entries || !entries.length) {
+    alert('⚠️ 找不到世界書條目，請確認這是 Tavo 角色卡 JSON');
+    return;
+  }
+  // 轉換格式
+  const lore = entries.map(e => {
+    let keys = [];
+    (e.keys || []).forEach(k => {
+      String(k).split(/[、，,]/).forEach(p => {
+        const t = p.trim();
+        if (t) keys.push(t);
+      });
+    });
+    return {
+      name: e.comment || e.name || '',
+      content: e.content || '',
+      constant: e.constant || false,
+      keys: keys
+    };
+  });
+  LOREBOOK = lore;
+  if (save('lorebook', lore)) {
+    document.getElementById('loreCount').textContent = lore.length;
+    const c = lore.filter(l=>l.constant).length;
+    alert('✅ 成功匯入 ' + lore.length + ' 條世界書（常駐 ' + c + ' 條，關鍵字 ' + (lore.length-c) + ' 條）');
+    document.getElementById('sLorebook').value = '';
+  }
+}
+
+function clearLorebook() {
+  if (!confirm('確定要清空所有世界書嗎？')) return;
+  LOREBOOK = [];
+  localStorage.removeItem('lorebook');
+  document.getElementById('loreCount').textContent = '0';
+  alert('已清空世界書');
+}
+
+// 掃描最近對話，回傳要注入的世界書內容
+function buildLorebook() {
+  // 取最近6則對話的文字（含使用者剛打的）來掃關鍵字
+  const recentText = chatHistory.slice(-6).map(m => contentToText(m.content)).join(' ');
+  let constantParts = [];
+  let triggeredParts = [];
+  for (const entry of LOREBOOK) {
+    if (entry.constant) {
+      constantParts.push('【' + entry.name + '】\n' + entry.content);
+    } else {
+      // 關鍵字命中才加
+      const hit = entry.keys.some(k => k && recentText.includes(k));
+      if (hit) {
+        triggeredParts.push('【' + entry.name + '】\n' + entry.content);
+      }
+    }
+  }
+  let result = '';
+  if (constantParts.length) {
+    result += '\n\n【核心設定（常駐）】\n' + constantParts.join('\n\n');
+  }
+  if (triggeredParts.length) {
+    result += '\n\n【相關回憶（觸發）】\n' + triggeredParts.join('\n\n');
+  }
+  return result;
+}
+let memories = load('memories') || [];
+let todos = load('todos') || [];
+let period = load('period') || {};
+let diaries = load('diaries') || [];
+let chatHistory = [];
+let busy = false;
+
+function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
+
+// 將多模態訊息轉成純文字，給摘要/世界書/記憶掃描使用
+function contentToText(content) {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (typeof part === 'string') return part;
+      if (part && part.type === 'text') return part.text || '';
+      if (part && part.text) return part.text;
+      if (part && (part.type === 'image_url' || part.image_url || part.inline_data)) return '[圖片]';
+      return '';
+    }).join(' ').trim();
+  }
+  if (content && typeof content === 'object') {
+    if (content.text) return content.text;
+    return '[圖片]';
+  }
+  return '';
+}
+
+
+// ── 圖片壓縮函數 ──
+function compressImage(file, maxSize, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width;
+      let h = img.height;
+      // 等比例縮放到maxSize內
+      if (w > h) {
+        if (w > maxSize) { h = h * maxSize / w; w = maxSize; }
+      } else {
+        if (h > maxSize) { w = w * maxSize / h; h = maxSize; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      // 轉成jpeg，品質0.8
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      callback(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function save(k,v) {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+    return true;
+  } catch(err) {
+    alert('⚠️ 儲存失敗：' + err.message + '\n\n可能是圖片太大或瀏覽器限制。請嘗試用較小的圖片，或檢查瀏覽器是否開啟無痕模式。');
+    return false;
+  }
+}
+
+// ── 初始化 ──
+function init() {
+  applyTheme(cfg.themeIdx ?? 0);
+  buildThemeDots();
+  loadCfgInputs();
+  renderMems();
+  renderTodos();
+  renderPeriod();
+  renderDiaries();
+  updateClock();
+  setInterval(updateClock, 30000);
+  fetchWeather();
+  renderSavedApis();
+  renderApiPicker();
+  buildThemeRow2();
+  // 還原背景圖片
+  const chatBg = load('chatBgData');
+  if (chatBg) applyChatBg(chatBg);
+  const homeBg = load('homeBgData');
+  if (homeBg) applyHomeBg(homeBg);
+  // 還原 API 名稱顯示
+  if (apiSlots[activeSlotIdx]) {
+    const s = apiSlots[activeSlotIdx];
+    if (s.name) {
+      document.getElementById('chatTitle').textContent = s.name;
+      document.getElementById('topTitle').textContent = s.name + ' 的小屋 🌙';
+      if (document.getElementById('apiPickerBtn')) document.getElementById('apiPickerBtn').textContent = s.name + ' ▾';
+    }
+  }
+  document.getElementById('firstMsgTime').textContent = fmtTime(new Date());
+}
+
+// ── 頁面切換 ──
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById('page-' + id) || document.getElementById(id);
+  if (p) p.classList.add('active');
+  if (id === 'chat') setTimeout(() => {
+    const inp = document.getElementById('chatInput');
+    if (inp) inp.focus();
+  }, 350);
+}
+
+function goHome() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+}
+
+// ── 主題 ──
+function applyTheme(idx) {
+  const t = THEMES[idx] || THEMES[0];
+  const r = document.documentElement.style;
+  r.setProperty('--bg', t.bg);
+  r.setProperty('--bar', t.bar);
+  r.setProperty('--accent', t.accent);
+  cfg.themeIdx = idx;
+  save('cfg', cfg);
+  document.querySelectorAll('.t-dot').forEach((d,i) => d.classList.toggle('on', i===idx));
+}
+
+function buildThemeDots() {
+  const row = document.getElementById('themeRow');
+  row.innerHTML = THEMES.map((t,i) =>
+    `<div class="t-dot${i===(cfg.themeIdx??0)?' on':''}" style="background:${t.dot}" onclick="applyTheme(${i})" title="${t.name}"></div>`
+  ).join('');
+}
+
+// ── 時鐘天氣 ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('topTime').textContent = fmtTime(now);
+  const h = now.getHours();
+  const greet = h<6?'深夜了 🌃':h<11?'早安 ☀️':h<13?'午安 🌤':h<18?'下午好 🌼':'晚上好 🌙';
+  document.getElementById('homeGreeting').textContent = greet;
+}
+
+async function fetchWeather() {
+  try {
+    const r = await fetch('https://wttr.in/?format=j1');
+    const d = await r.json();
+    const c = d.current_condition[0];
+    const loc = d.nearest_area[0].areaName[0].value;
+    const info = `${loc}・${c.temp_C}°C・${c.weatherDesc[0].value}`;
+    document.getElementById('topWeather').textContent = info;
+    document.getElementById('chatInfo').textContent = info;
+    document.getElementById('homeSub').textContent = `${info}，今天也要好好的喔 💜`;
+  } catch {
+    document.getElementById('topWeather').textContent = '天氣載入失敗';
+  }
+}
+
+// ── 設定 ──
+function loadCfgInputs() {
+  if (cfg.name) document.getElementById('sName').value = cfg.name;
+  if (cfg.endpoint) document.getElementById('sEndpoint').value = cfg.endpoint;
+  if (cfg.key) document.getElementById('sKey').value = cfg.key;
+  if (cfg.model) document.getElementById('sModel').value = cfg.model;
+  if (cfg.desc) document.getElementById('sDesc').value = cfg.desc;
+  if (cfg.scenario) document.getElementById('sScenario').value = cfg.scenario;
+  if (cfg.example) document.getElementById('sExample').value = cfg.example;
+  if (cfg.postHistory) document.getElementById('sPostHistory').value = cfg.postHistory;
+  if (cfg.sumModel) document.getElementById('sSumModel').value = cfg.sumModel;
+  if (cfg.name) {
+    document.getElementById('chatTitle').textContent = cfg.name;
+    document.getElementById('topTitle').textContent = cfg.name + ' 的小屋 🌙';
+  }
+}
+
+
+var touchTimer = null;
+
+function handleTouchStart(e) {
+  touchTimer = setTimeout(function() {
+    triggerAvatarUpload();
+  }, 500);
+}
+
+function handleTouchEnd(e) {
+  if (touchTimer) {
+    clearTimeout(touchTimer);
+    touchTimer = null;
+  }
+}
+
+function triggerAvatarUpload() {
+  var input = document.getElementById('chatAvatarInput');
+  input.value = '';
+  input.click();
+}
+
+function handleChatAvatar(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, 300, function(dataUrl) {
+    cfg.avatar = dataUrl;
+    if (save('cfg', cfg)) {
+      updateAllAvatars();
+    }
+  });
+}
+
+function saveChatName(el) {
+  const newName = el.textContent.trim();
+  if (newName) {
+    cfg.name = newName;
+    save('cfg', cfg);
+    document.getElementById('topTitle').textContent = cfg.name + ' 的小屋 🌙';
+  } else {
+    el.textContent = cfg.name || '晏';
+  }
+}
+
+function updateAllAvatars() {
+  const av = cfg.avatar;
+  // 更新聊天頁面頂部頭像
+  const chatAv = document.getElementById('chatAvatarBtn');
+  if (chatAv) {
+    if (av) {
+      chatAv.innerHTML = '<img src="' + av + '" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      chatAv.textContent = '🌙';
+    }
+  }
+  // 設定頁面預覽
+  const preview = document.getElementById('avatarPreview');
+  if (preview) {
+    if (av) {
+      preview.innerHTML = '<img src="' + av + '" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      preview.textContent = '🌙';
+    }
+  }
+  // 所有聊天泡泡頭像
+  document.querySelectorAll('[data-is-ai="true"]').forEach(el => {
+    if (av) {
+      el.innerHTML = '<img src="' + av + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    } else {
+      el.textContent = '🌙';
+    }
+  });
+}
+
+
+function saveSettings() {
+  cfg.name = document.getElementById('sName').value.trim() || '晏';
+  cfg.endpoint = document.getElementById('sEndpoint').value.trim();
+  cfg.key = document.getElementById('sKey').value.trim();
+  cfg.model = document.getElementById('sModel').value.trim() || 'gemini-2.5-pro-by-google';
+  cfg.desc = document.getElementById('sDesc').value.trim();
+  cfg.scenario = document.getElementById('sScenario').value.trim();
+  cfg.example = document.getElementById('sExample').value.trim();
+  cfg.postHistory = document.getElementById('sPostHistory').value.trim();
+  cfg.sumModel = document.getElementById('sSumModel').value.trim() || 'gemini-2.5-flash-lite-by-google';
+  save('cfg', cfg);
+  document.getElementById('chatTitle').textContent = cfg.name;
+  document.getElementById('topTitle').textContent = cfg.name + ' 的小屋 🌙';
+  alert('✅ 儲存成功！');
+}
+
+
+
+// ── 多 API 連線管理 ──
+let apiSlots = load('apiSlots') || [];
+let activeSlotIdx = load('activeSlotIdx') ?? 0;
+
+function renderSavedApis() {
+  const el = document.getElementById('savedApiList');
+  if (!el) return;
+  if (apiSlots.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:13px;padding:12px">還沒有儲存的連線，點下方新增</div>';
+    return;
+  }
+  el.innerHTML = apiSlots.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${i===activeSlotIdx?'rgba(167,139,250,0.12)':'white'};border-radius:12px;margin-bottom:6px;border:${i===activeSlotIdx?'1.5px solid var(--accent)':'1px solid rgba(0,0,0,0.06)'}">
+      <div style="flex:1;cursor:pointer" onclick="loadApiSlot(${i})">
+        <div style="font-size:14px;font-weight:600">${s.name||'未命名'} ${i===activeSlotIdx?'✓':''}</div>
+        <div style="font-size:11px;color:var(--subtext)">${s.model||'未設定模型'}</div>
+      </div>
+      <button onclick="loadApiSlot(${i})" style="padding:5px 10px;border-radius:8px;background:var(--accent);border:none;color:white;font-size:12px;cursor:pointer">使用</button>
+      <button onclick="delApiSlot(${i})" style="padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.06);border:none;color:var(--subtext);font-size:12px;cursor:pointer">刪除</button>
+    </div>`).join('');
+}
+
+function addNewApiSlot() {
+  // 把目前設定欄清空，準備輸入新連線
+  document.getElementById('sName').value = '';
+  document.getElementById('sEndpoint').value = '';
+  document.getElementById('sKey').value = '';
+  document.getElementById('sModel').value = '';
+  document.getElementById('sPrompt').value = '';
+  document.getElementById('sSumModel').value = '';
+  alert('請在下方填入新的 API 連線資料，然後點「儲存設定」');
+}
+
+function loadApiSlot(idx) {
+  const s = apiSlots[idx];
+  if (!s) return;
+  activeSlotIdx = idx;
+  save('activeSlotIdx', activeSlotIdx);
+  cfg = {...cfg, ...s};
+  save('cfg', cfg);
+  loadCfgInputs();
+  // 更新聊天頭部名稱
+  if (cfg.name) {
+    document.getElementById('chatTitle').textContent = cfg.name;
+    document.getElementById('topTitle').textContent = cfg.name + ' 的小屋 🌙';
+    document.getElementById('apiPickerBtn').textContent = cfg.name + ' ▾';
+  }
+  renderSavedApis();
+  renderApiPicker();
+  alert('✅ 已切換到：' + (s.name||'未命名'));
+}
+
+function delApiSlot(idx) {
+  if (!confirm('確定刪除這個連線？')) return;
+  apiSlots.splice(idx, 1);
+  save('apiSlots', apiSlots);
+  if (activeSlotIdx >= apiSlots.length) activeSlotIdx = Math.max(0, apiSlots.length-1);
+  save('activeSlotIdx', activeSlotIdx);
+  renderSavedApis();
+  renderApiPicker();
+}
+
+// 覆寫 saveSettings 加入多連線儲存
+const _origSaveSettings = saveSettings;
+saveSettings = function() {
+  cfg.name = document.getElementById('sName').value.trim() || '晏';
+  cfg.endpoint = document.getElementById('sEndpoint').value.trim();
+  cfg.key = document.getElementById('sKey').value.trim();
+  cfg.model = document.getElementById('sModel').value.trim() || 'gemini-2.5-flash-by-google';
+  cfg.desc = document.getElementById('sDesc').value.trim();
+  cfg.scenario = document.getElementById('sScenario').value.trim();
+  cfg.example = document.getElementById('sExample').value.trim();
+  cfg.postHistory = document.getElementById('sPostHistory').value.trim();
+  cfg.sumModel = document.getElementById('sSumModel').value.trim() || 'gemini-2.5-flash-lite-by-google';
+  save('cfg', cfg);
+
+  // 儲存到 slot
+  const existing = apiSlots.findIndex(s => s.endpoint === cfg.endpoint && s.key === cfg.key);
+  const slot = {name:cfg.name, endpoint:cfg.endpoint, key:cfg.key, model:cfg.model, prompt:cfg.prompt, sumModel:cfg.sumModel};
+  if (existing >= 0) {
+    apiSlots[existing] = slot;
+    activeSlotIdx = existing;
+  } else {
+    apiSlots.push(slot);
+    activeSlotIdx = apiSlots.length - 1;
+  }
+  save('apiSlots', apiSlots);
+  save('activeSlotIdx', activeSlotIdx);
+
+  document.getElementById('chatTitle').textContent = cfg.name;
+  document.getElementById('topTitle').textContent = cfg.name + ' 的小屋 🌙';
+  if (document.getElementById('apiPickerBtn')) document.getElementById('apiPickerBtn').textContent = cfg.name + ' ▾';
+  renderSavedApis();
+  renderApiPicker();
+  alert('✅ 儲存成功！');
+};
+
+// API 切換浮層
+function showApiPicker() {
+  renderApiPicker();
+  document.getElementById('apiPickerOverlay').style.display = 'block';
+  document.getElementById('apiPickerSheet').style.display = 'block';
+}
+
+function hideApiPicker() {
+  document.getElementById('apiPickerOverlay').style.display = 'none';
+  document.getElementById('apiPickerSheet').style.display = 'none';
+}
+
+function renderApiPicker() {
+  const el = document.getElementById('apiPickerList');
+  if (!el) return;
+  if (apiSlots.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:13px;padding:16px">還沒有儲存的連線<br>請先到設定頁新增</div>';
+    return;
+  }
+  el.innerHTML = apiSlots.map((s, i) => `
+    <div onclick="loadApiSlot(${i});hideApiPicker()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:6px;background:${i===activeSlotIdx?'rgba(167,139,250,0.12)':'rgba(0,0,0,0.04)'};cursor:pointer;border:${i===activeSlotIdx?'1.5px solid var(--accent)':'1px solid transparent'}">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c8a4d4,#9a6abe);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px">${(s.name||'?')[0]}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600">${s.name||'未命名'} ${i===activeSlotIdx?'✓':''}</div>
+        <div style="font-size:11px;color:var(--subtext)">${s.model||''}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── 背景圖片 ──
+function setChatBg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  compressImage(file, 1000, function(dataUrl) {
+    if (save('chatBgData', dataUrl)) {
+      applyChatBg(dataUrl);
+      document.getElementById('bgPreview').style.backgroundImage = 'url(' + dataUrl + ')';
+      document.getElementById('bgPreview').textContent = '';
+    }
+  });
+}
+
+function clearChatBg() {
+  localStorage.removeItem('chatBgData');
+  document.getElementById('messages').style.backgroundImage = '';
+  document.getElementById('messages').style.background = '';
+  document.getElementById('bgPreview').style.backgroundImage = '';
+  document.getElementById('bgPreview').textContent = '聊天背景預覽';
+}
+
+function applyChatBg(dataUrl) {
+  const msgs = document.getElementById('messages');
+  if (msgs) {
+    msgs.style.backgroundImage = 'url(' + dataUrl + ')';
+    msgs.style.backgroundSize = 'cover';
+    msgs.style.backgroundPosition = 'center';
+    msgs.style.backgroundAttachment = 'local';
+  }
+}
+
+function setHomeBg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  compressImage(file, 1000, function(dataUrl) {
+    if (save('homeBgData', dataUrl)) {
+      applyHomeBg(dataUrl);
+    }
+  });
+}
+
+function clearHomeBg() {
+  localStorage.removeItem('homeBgData');
+  document.getElementById('home').style.backgroundImage = '';
+}
+
+function applyHomeBg(dataUrl) {
+  const home = document.getElementById('home');
+  if (home) {
+    home.style.backgroundImage = 'url(' + dataUrl + ')';
+    home.style.backgroundSize = 'cover';
+    home.style.backgroundPosition = 'center';
+  }
+  // 同時套到screen
+  const screen = document.querySelector('.screen');
+  if (screen) {
+    screen.style.backgroundImage = 'url(' + dataUrl + ')';
+    screen.style.backgroundSize = 'cover';
+    screen.style.backgroundPosition = 'center';
+  }
+}
+
+function buildThemeRow2() {
+  const row = document.getElementById('themeRow2');
+  if (!row) return;
+  row.innerHTML = THEMES.map((t,i) =>
+    `<div class="t-dot${i===(cfg.themeIdx??0)?' on':''}" style="background:${t.dot}" onclick="applyTheme(${i});buildThemeRow2()" title="${t.name}"></div>`
+  ).join('');
+}
+
+// ── 摘要系統 ──
+let conversationSummary = load('convSummary') || '';
+let roundsSinceLastSummary = 0;
+const SUMMARY_EVERY = 10; // 每10輪壓縮一次
+
+async function maybeSummarize() {
+  if (roundsSinceLastSummary < SUMMARY_EVERY) return;
+  if (!cfg.endpoint || !cfg.key) return;
+  roundsSinceLastSummary = 0;
+
+  // 取最近的對話來壓縮
+  const toSummarize = chatHistory.slice(0, -4); // 保留最後4條不壓縮
+  if (toSummarize.length < 6) return;
+
+  try {
+    const prev = conversationSummary ? `之前的摘要：${conversationSummary}\n\n` : '';
+    const recent = toSummarize.map(m => `${m.role === 'user' ? '用戶' : 'AI'}：${contentToText(m.content)}`).join('\n');
+
+    const res = await fetch(cfg.endpoint.replace(/\/$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+      body: JSON.stringify({
+        model: cfg.sumModel || 'gemini-2.5-flash-lite-by-google',
+        messages: [{
+          role: 'system',
+          content: '你是對話摘要助手。用繁體中文，100字以內，摘要以下對話的重點，包括用戶說的重要事情、情緒狀態、話題。只輸出摘要，不要其他內容。'
+        }, {
+          role: 'user',
+          content: prev + recent
+        }],
+        max_tokens: 200
+      })
+    });
+    const data = await res.json();
+    const choice = data?.choices?.[0];
+    const msg = choice?.message || {};
+    let content = msg.content || '';
+    // 過濾思考過程
+    if (/^[\*\[A-Z]/.test(content) && content.length > 300) {
+      const lines = content.split('\n');
+      const zhLines = lines.filter(l => /[\u4e00-\u9fff]/.test(l) && l.trim().length > 5);
+      if (zhLines.length > 0) content = zhLines.join('\n').trim();
+    }
+    if (content) {
+      conversationSummary = content;
+      save('convSummary', conversationSummary);
+      // 壓縮後只保留最後4條
+      chatHistory = chatHistory.slice(-4);
+    }
+  } catch(e) {
+    console.log('摘要失敗:', e.message);
+  }
+}
+
+// ── 聊天 ──
+async function sendMsg() {
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text || busy) return;
+  inp.value = '';
+  inp.style.height = '';
+  appendMsg(text, true);
+  chatHistory.push({role:'user', content:text});
+  roundsSinceLastSummary++;
+  showTyping();
+  // 背景執行摘要（不阻塞聊天）
+  maybeSummarize().catch(()=>{});
+  try {
+    const reply = await callAI();
+    hideTyping();
+    appendMsg(reply, false);
+    chatHistory.push({role:'assistant', content:reply});
+  } catch(e) {
+    hideTyping();
+    appendMsg('⚠️ ' + e.message, false);
+  }
+}
+
+async function callAI() {
+  if (!cfg.endpoint || !cfg.key) return '請先到「設定」填入 API 接口和金鑰喔 💜';
+  busy = true;
+  try {
+    const memStr = memories.length
+      ? '\n\n【關於用戶的長期記憶】\n' + memories.map(m=>'- '+m.text).join('\n') : '';
+    const sumStr = conversationSummary
+      ? '\n\n【之前對話摘要】\n' + conversationSummary : '';
+    const defaultPrompt = `你是一個溫柔體貼的 AI 伴侶。請根據使用者在設定頁面填寫的角色設定、情境、對話範例與世界書來扮演。\n\n【重要格式規定】不要使用任何 markdown 格式，不要用**粗體**、*斜體*、#標題，直接用純文字，可以正常換行。語氣自然像在說話。`;
+    let baseSys = '';
+    if (cfg.name) baseSys += '你的名字是「' + cfg.name + '」。\n\n';
+    if (cfg.desc) baseSys += '【角色設定】\n' + cfg.desc + '\n\n';
+    if (cfg.scenario) baseSys += '【情境設定】\n' + cfg.scenario + '\n\n';
+    if (cfg.example) baseSys += '【對話範例】\n' + cfg.example + '\n\n';
+    if (!baseSys.trim()) baseSys = defaultPrompt;
+    const formatRule = '\n\n【重要】回覆時不要使用任何 markdown 格式，不要用**粗體**、*斜體*、#標題，直接用純文字回覆，換行用正常換行即可。';
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',weekday:'long',hour:'2-digit',minute:'2-digit'});
+    const timeRule = '\n\n【當前時間】現在是 ' + timeStr + '，回答時間相關問題請以此為準。';
+    const loreStr = buildLorebook();
+    const postHistoryStr = cfg.postHistory ? ('\n\n【回覆要求】\n' + cfg.postHistory) : '';
+    const sys = baseSys + loreStr + formatRule + timeRule + postHistoryStr + memStr + sumStr;
+
+    const res = await fetch(cfg.endpoint.replace(/\/$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+cfg.key},
+      body: JSON.stringify({
+        model: cfg.model || 'gemini-2.5-pro-by-google',
+        messages: [{role:'system',content:sys}, ...chatHistory.slice(-16)],
+        max_tokens: 1500
+      })
+    });
+
+    const raw = await res.text();
+    if (!res.ok) throw new Error('HTTP ' + res.status + '：' + raw.slice(0,120));
+
+    let data;
+    try { data = JSON.parse(raw); } catch { throw new Error('回應格式錯誤'); }
+
+    // 相容 OpenAI / Gemini / 各種中轉格式
+    const choice = data?.choices?.[0];
+    if (!choice) throw new Error('無效回應：' + raw.slice(0,120));
+
+    // Gemini thinking 模式：content 可能為空，實際內容在 reasoning_content 或 parts
+    const msg = choice.message || {};
+    let content = msg.content;
+
+    // Gemini thinking 模式處理
+    if (content && content.trim() !== '') {
+      // 如果 content 包含思考過程標記，嘗試提取真正的回覆
+      // 方法1：找 "My Response" 之後的內容
+      const responseMatch = content.match(/\*\*My (?:Response|Final Response)[^*]*\*\*[\s\S]*?\n+([\s\S]+)/i);
+      if (responseMatch) {
+        content = responseMatch[1].trim();
+      }
+      // 方法2：如果整個 content 是英文思考過程，取最後一段中文
+      if (/^[\*\[A-Z]/.test(content) && content.length > 500) {
+        const lines = content.split('\n');
+        const chineseLines = lines.filter(l => /[\u4e00-\u9fff]/.test(l) && l.trim().length > 5);
+        if (chineseLines.length > 0) {
+          // 找到中文段落群組
+          let inChinese = false;
+          let chineseBlock = [];
+          for (const l of lines) {
+            if (/[\u4e00-\u9fff]/.test(l)) { inChinese = true; chineseBlock.push(l); }
+            else if (inChinese && l.trim() === '') { chineseBlock.push(l); }
+            else if (inChinese) { inChinese = false; }
+          }
+          if (chineseBlock.join('').replace(/\s/g,'').length > 20) {
+            content = chineseBlock.join('\n').trim();
+          }
+        }
+      }
+    }
+
+    // 如果 content 是空字串，嘗試其他欄位
+    if (!content || content.trim() === '') {
+      const pf = msg.provider_specific_fields || {};
+      content = pf.reasoning_content || pf.thinking || msg.reasoning || '';
+      if (content) {
+        // 只取中文部分
+        const lines = content.split('\n');
+        const chineseLines = lines.filter(l => /[\u4e00-\u9fff]/.test(l) && l.trim().length > 5);
+        if (chineseLines.length > 0) content = chineseLines.join('\n').trim();
+        else content = content.replace(/^\*\*My Response to the User's Query\*\*\n*/i, '').trim();
+      }
+    }
+
+    if (!content || content.trim() === '') throw new Error('回覆內容為空，請確認模型名稱是否正確');
+    // 清除 markdown 格式符號
+    content = content
+      .replace(/\*\*([^*]+)\*\*/g, '$1')   // **粗體**
+      .replace(/\*([^*]+)\*/g, '$1')         // *斜體*
+      .replace(/#{1,6}\s/g, '')              // # 標題
+      .replace(/`([^`]+)`/g, '$1')           // `程式碼`
+      .trim();
+    return content;
+  } finally {
+    busy = false;
+  }
+}
+
+function appendMsg(text, isMe) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (isMe ? ' me' : '');
+
+  if (!isMe) {
+    const av = document.createElement('div');
+    av.className = 'msg-ava';
+    av.dataset.isAi = 'true';
+    if (cfg.avatar) {
+      av.innerHTML = '<img src="' + cfg.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    } else {
+      av.textContent = '🌙';
+    }
+    row.appendChild(av);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.textContent = text;
+  const t = document.createElement('div');
+  t.className = 'msg-time';
+  t.textContent = fmtTime(new Date());
+  body.appendChild(bub);
+  body.appendChild(t);
+  row.appendChild(body);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('請選擇圖片檔案');
+    input.value = '';
+    return;
+  }
+
+  compressImage(file, 1200, async function(dataUrl) {
+    // 先把圖片顯示在聊天室
+    appendImgMsg(dataUrl, true);
+
+    // 若輸入框有文字，就拿來當圖片問題；沒有就用預設提問
+    const inp = document.getElementById('chatInput');
+    const question = (inp && inp.value.trim()) ? inp.value.trim() : '請看這張圖片，直接描述你看到的內容。';
+    if (inp) {
+      inp.value = '';
+      inp.style.height = '';
+    }
+
+    // OpenAI-compatible Vision 格式，多數 /chat/completions 中轉都吃這個格式
+    const visionContent = [
+      { type: 'text', text: question },
+      { type: 'image_url', image_url: { url: dataUrl } }
+    ];
+
+    chatHistory.push({role:'user', content: visionContent});
+    roundsSinceLastSummary++;
+
+    showTyping();
+    maybeSummarize().catch(()=>{});
+
+    try {
+      const reply = await callAI();
+      hideTyping();
+      appendMsg(reply, false);
+      chatHistory.push({role:'assistant', content: reply});
+    } catch(e) {
+      hideTyping();
+      appendMsg('⚠️ ' + e.message, false);
+    } finally {
+      input.value = '';
+    }
+  });
+}
+
+function appendImgMsg(src, isMe) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (isMe ? ' me' : '');
+
+  if (!isMe) {
+    const av = document.createElement('div');
+    av.className = 'msg-ava';
+    av.dataset.isAi = 'true';
+    if (cfg.avatar) {
+      av.innerHTML = '<img src="' + cfg.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    } else {
+      av.textContent = '🌙';
+    }
+    row.appendChild(av);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-img';
+  const img = document.createElement('img');
+  img.src = src;
+  wrap.appendChild(img);
+  const t = document.createElement('div');
+  t.className = 'msg-time';
+  t.textContent = fmtTime(new Date());
+  if (isMe) t.style.textAlign = 'right';
+  body.appendChild(wrap);
+  body.appendChild(t);
+  row.appendChild(body);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  busy = true;
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.id = 'typingRow';
+  const av = document.createElement('div');
+  av.className = 'msg-ava';
+  av.dataset.isAi = 'true';
+  if (cfg.avatar) {
+    av.innerHTML = '<img src="' + cfg.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  } else {
+    av.textContent = '🌙';
+  }
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  row.appendChild(av);
+  row.appendChild(t);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  busy = false;
+  const el = document.getElementById('typingRow');
+  if (el) el.remove();
+}
+
+// ── 記憶 ──
+function addMem() {
+  const inp = document.getElementById('memInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  memories.push({id:Date.now(), text, tag:'手動', date:new Date().toLocaleDateString('zh-TW')});
+  save('memories', memories);
+  inp.value = '';
+  renderMems();
+}
+
+async function genMemory() {
+  if (chatHistory.length === 0) { alert('先和 AI 聊幾句再生成！'); return; }
+  if (!cfg.endpoint || !cfg.key) { alert('請先設定 API'); return; }
+  const btn = document.querySelector('.gen-btn');
+  btn.textContent = '⏳ 生成中...';
+  try {
+    const recent = chatHistory.slice(-10).map(m=>m.role+': '+contentToText(m.content)).join('\n');
+    const res = await fetch(cfg.endpoint.replace(/\/$/, '') + '/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+      body:JSON.stringify({
+        model: cfg.model || 'gemini-2.5-pro-by-google',
+        messages:[
+          {role:'system',content:'從對話中提取3-5條重要用戶信息，每條一行，用繁體中文，格式：「用戶...」，只輸出條目。'},
+          {role:'user',content:recent}
+        ],
+        max_tokens:300
+      })
+    });
+    const raw = await res.text();
+    const data = JSON.parse(raw);
+    const choice = data?.choices?.[0];
+    const msg = choice?.message || {};
+    let content = msg.content;
+    if (!content || content.trim()==='') {
+      const pf = msg.provider_specific_fields || {};
+      content = pf.reasoning_content || '';
+      if (content) content = content.replace(/^\*\*My Response to the User's Query\*\*\n*/i,'').trim();
+    }
+    if (content) {
+      content.split('\n').filter(l=>l.trim()).forEach(item => {
+        memories.push({id:Date.now()+Math.random(), text:item.trim(), tag:'AI生成', date:new Date().toLocaleDateString('zh-TW')});
+      });
+      save('memories', memories);
+      renderMems();
+      btn.textContent = '✅ 生成完成！';
+    }
+  } catch(e) {
+    btn.textContent = '❌ 失敗：' + e.message.slice(0,30);
+  }
+  setTimeout(()=>{ btn.textContent='✨ 一鍵從聊天生成記憶'; },2500);
+}
+
+function delMem(id) {
+  memories = memories.filter(m=>m.id!==id);
+  save('memories', memories);
+  renderMems();
+}
+
+function renderMems() {
+  const el = document.getElementById('memList');
+  if (!memories.length) {
+    el.innerHTML = '<div class="empty-tip">還沒有記憶 🧠<br>和 AI 聊天後一鍵生成吧</div>';
+    return;
+  }
+  el.innerHTML = memories.map(m=>`
+    <div class="mem-card">
+      <div style="flex:1">
+        <div class="mem-tag">${m.tag}・${m.date}</div>
+        <div class="mem-text">${m.text}</div>
+      </div>
+      <button class="mem-del" onclick="delMem(${m.id})">×</button>
+    </div>`).join('');
+}
+
+function quickMem() {
+  const inp = document.getElementById('chatInput');
+  if (inp.value.trim()) {
+    memories.push({id:Date.now(), text:inp.value.trim(), tag:'快速存', date:new Date().toLocaleDateString('zh-TW')});
+    save('memories', memories);
+    alert('已存入記憶 ✅');
+  } else {
+    alert('請先在輸入框寫下要記住的事');
+  }
+}
+
+// ── 待辦 ──
+function addTodo() {
+  const inp = document.getElementById('todoInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  todos.push({id:Date.now(), text, done:false});
+  save('todos', todos);
+  inp.value = '';
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  todos = todos.map(t=>t.id===id?{...t,done:!t.done}:t);
+  save('todos', todos);
+  renderTodos();
+}
+
+function renderTodos() {
+  const el = document.getElementById('todoList');
+  if (!todos.length) { el.innerHTML='<div class="empty-tip">沒有待辦事項 ✨</div>'; return; }
+  el.innerHTML = todos.map(t=>`
+    <div class="todo-item ${t.done?'done':''}">
+      <div class="todo-chk ${t.done?'done':''}" onclick="toggleTodo(${t.id})">${t.done?'✓':''}</div>
+      <span>${t.text}</span>
+    </div>`).join('');
+}
+
+// ── 經期 ──
+function savePeriod() {
+  const d = document.getElementById('pDate').value;
+  if (!d) { alert('請選擇日期'); return; }
+  period.last = d;
+  save('period', period);
+  renderPeriod();
+}
+
+function renderPeriod() {
+  if (!period.last) return;
+  const last = new Date(period.last);
+  const next = new Date(last);
+  next.setDate(next.getDate() + 28);
+  const today = new Date();
+  const daysLeft = Math.ceil((next - today) / 86400000);
+  const prog = Math.max(0, Math.min(100, ((today-last)/(next-last))*100));
+  document.getElementById('pLast').textContent = last.toLocaleDateString('zh-TW');
+  document.getElementById('pNext').textContent = daysLeft > 0 ? `還有 ${daysLeft} 天` : '可能快來了 🌸';
+  document.getElementById('pFill').style.width = prog + '%';
+  document.getElementById('pStatus').textContent = `週期進度 ${Math.round(prog)}%`;
+}
+
+// ── 日記 ──
+function saveDiary() {
+  const text = document.getElementById('diaryInput').value.trim();
+  if (!text) { alert('請先寫點什麼'); return; }
+  diaries.unshift({id:Date.now(), text, date:new Date().toLocaleString('zh-TW')});
+  save('diaries', diaries);
+  document.getElementById('diaryInput').value = '';
+  renderDiaries();
+}
+
+function renderDiaries() {
+  const el = document.getElementById('diaryList');
+  if (!diaries.length) { el.innerHTML='<div class="empty-tip">還沒有日記 📖<br>把今天的故事寫下來吧</div>'; return; }
+  el.innerHTML = diaries.map(d=>`
+    <div class="diary-entry">
+      <div class="diary-date">${d.date}</div>
+      <div class="diary-text">${d.text}</div>
+    </div>`).join('');
+}
+
+
+// ── 匯入 Tavo ──
+function importTavo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('importStatus');
+  status.textContent = '⏳ 讀取中...';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const lines = e.target.result.split('\n').filter(l => l.trim());
+      let msgs = [];
+      let header = null;
+
+      for (const line of lines) {
+        try {
+          const obj = JSON.parse(line);
+          if (!obj.name && obj.user_name) { header = obj; continue; }
+          if (!obj.name || !obj.mes) continue;
+          // 清除HTML標籤
+          const clean = obj.mes.replace(/<[^>]*>/g, '').replace(/&nbsp;/g,' ').trim();
+          if (!clean) continue;
+          msgs.push({
+            role: obj.is_user ? 'user' : 'ai',
+            name: obj.name,
+            text: clean,
+            date: obj.send_date ? obj.send_date.slice(0,10) : ''
+          });
+        } catch {}
+      }
+
+      if (msgs.length === 0) {
+        status.textContent = '❌ 沒有找到有效對話';
+        return;
+      }
+
+      // 存入對話歷史（瀏覽用）
+      const tavoHistory = msgs.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+      save('tavoHistory', tavoHistory);
+
+      // 提取特殊記憶（日期、地點、重要事件）
+      const keyPhrases = [
+        '生日','記得','約好','喜歡','討厭','重要','以後','想要'
+      ];
+      const memCandidates = [];
+      for (const m of msgs) {
+        if (m.role === 'ai') continue; // 只從用戶訊息提取
+        for (const kw of keyPhrases) {
+          if (m.text.includes(kw) && m.text.length < 200) {
+            memCandidates.push(m.text);
+            break;
+          }
+        }
+      }
+
+      // 取前20條不重複的
+      const unique = [...new Set(memCandidates)].slice(0, 20);
+      const newMems = unique.map((text, i) => ({
+        id: Date.now() + i,
+        text,
+        tag: 'Tavo匯入',
+        date: new Date().toLocaleDateString('zh-TW')
+      }));
+
+      // 同時加入固定記憶（從header和前幾條對話提取的重要信息）
+      const fixedMems = []
+
+      memories = [...fixedMems, ...newMems, ...memories];
+      save('memories', memories);
+      renderMems();
+
+      status.textContent = `✅ 匯入完成！${msgs.length} 條對話，提取 ${fixedMems.length + newMems.length} 條記憶`;
+      setTimeout(() => {
+        if (confirm(`成功匯入 ${msgs.length} 條對話記錄！\n\n已自動提取重要記憶。\n\n要去記憶頁查看嗎？`)) {
+          goPage('memory');
+        }
+      }, 500);
+
+    } catch(err) {
+      status.textContent = '❌ 錯誤：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ── 工具 ──
+function fmtTime(d) {
+  return d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+}
+
+init();
+</script>
+<input type="file" id="chatAvatarInput" accept="image/*" style="position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0" onchange="handleChatAvatar(event)">
+</body>
+</html>
